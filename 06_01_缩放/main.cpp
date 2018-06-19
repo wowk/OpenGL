@@ -4,9 +4,15 @@
 #include <cassert>
 #include <unistd.h>
 #include <glad/glad.h>
+#include <GL/glu.h>
+#include <GL/gl.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_keyboard.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 
 #define WORKDIR "../06_01_缩放/"
 
@@ -59,18 +65,56 @@ int main(int argc, char *argv[])
     GLuint vao;
     GLuint vbo;
     GLfloat vertices[] = {
-        0.5f,   -0.5f,  -0.5f,   1.0f,  0.0f,
-        -0.5f,  -0.5f,  -0.5f,   0.0f,  0.0f,
-        -0.5f,  0.5f,   -0.5f,   0.0f,  1.0f,
-        0.5f,   0.5f,   -0.5f,   1.0f,  1.0f,
+        -0.3f,  -0.2f,  -0.1f,  0.0f,  0.0f,//0
+        -0.1f,  0.2f,   0.1f,   1.0f,  0.0f,//1
+        0.3f,   0.2f,   0.1f,   1.0f,  1.0f,//2
+        0.1f,   -0.2f,  -0.1f,  0.0f,  1.0f,//3
+
+        -0.3f,  0.2f,   -0.1f,  0.0f,  0.0f,//4
+        -0.1f,  0.6f,   0.1f,   1.0f,  0.0f,//5
+        0.3f,   0.6f,   0.1f,   1.0f,  1.0f,//6
+        0.1f,   0.2f,   -0.1f,  0.0f,  1.0f,//7
+
+        -0.3f,  -0.2f,  -0.1f,  0.0f,  0.0f,//0
+        -0.1f,  0.2f,   0.1f,   0.0f,  1.0f,//1
+        -0.1f,  0.6f,   0.1f,   1.0f,  1.0f,//5
+        -0.3f,  0.2f,   -0.1f,  1.0f,  0.0f,//4
+
+        0.3f,   0.2f,   0.1f,   0.0f,  0.0f,//2
+        0.1f,   -0.2f,  -0.1f,  1.0f,  0.0f,//3
+        0.1f,   0.2f,   -0.1f,  1.0f,  1.0f,//7
+        0.3f,   0.6f,   0.1f,   0.0f,  1.0f,//6
+
+        -0.1f,  0.2f,   0.1f,   0.0f,  0.0f,//1
+        0.3f,   0.2f,   0.1f,   1.0f,  0.0f,//2
+        0.3f,   0.6f,   0.1f,   1.0f,  1.0f,//6
+        -0.1f,  0.6f,   0.1f,   0.0f,  1.0f,//5
+
+        -0.3f,  -0.2f,  -0.1f,  0.0f,  0.0f,//0
+        0.1f,   -0.2f,  -0.1f,  1.0f,  0.0f,//3
+        0.1f,   0.2f,   -0.1f,  1.0f,  1.0f,//7
+        -0.3f,  0.2f,   -0.1f,  0.0f,  1.0f,//4
     };
 
     GLuint indices[] = {
-        0,  1,  2,
-        0,  3,  2,
+        0, 1, 2,
+        0, 3, 2,
+
+        4, 5, 6,
+        4, 7, 6,
+
+        8, 9, 10,
+        8, 11, 10,
+
+        12, 13, 14,
+        12, 15, 14,
+
+        16, 17, 18,
+        16, 19, 18,
+
+        20, 21, 22,
+        20, 23, 22,
     };
-
-
 
     GLfloat colorUniform[3];
     GLint colorUniformLocation;
@@ -96,10 +140,15 @@ int main(int argc, char *argv[])
     GLchar logBuffer[256];
     GLsizei logBufferLen;
 
-    GLboolean running = GL_FALSE;
+    bool running = GL_FALSE;
     SDL_Window* window = NULL;
     SDL_GLContext glContext = NULL;
 
+    mat4 projection;
+    GLint projectionLocation;
+
+
+    printf("work dir = %s\n", get_current_dir_name());
     chdir(WORKDIR);
 
     if( 0 > SDL_Init(SDL_INIT_VIDEO) ){
@@ -135,6 +184,9 @@ int main(int argc, char *argv[])
     }
 
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEBUG_OUTPUT);
+
+    projection = perspective(90.0f, 800.0f/600.0f, 0.1f, 100.0f);
 
     /* load vertex data */
     glGenVertexArrays(1, &vao);
@@ -233,16 +285,22 @@ int main(int argc, char *argv[])
     }
     glGetUniformfv(program, moveOffsetUniformLocation, moveOffsetUniform);
 
-    glGenTextures(2, texture);
-    if( 0 == texture[0] ){
-        printf("glGentexture failed: %d\n", glGetError());
-        goto error_gl_gen_textures;
-    }
+//    projectionLocation = glGetUniformLocation(program, "projection");
+//    if( -1 == projectionLocation ){
+//        printf("get uniform <projection>'s location failed: %d\n", glGetError());
+//        goto error_get_uniform_projection_location;
+//    }
 
     scaleUniformLocation = glGetUniformLocation(program, "scale");
     if( -1 == scaleUniformLocation ){
         printf("get uniform <scale>'s location failed: %d\n", glGetError());
         goto error_gl_get_uniform_alpha_location;
+    }
+
+    glGenTextures(2, texture);
+    if( 0 == texture[0] ){
+        printf("glGentexture failed: %d\n", glGetError());
+        goto error_gl_gen_textures;
     }
 
     glBindTexture(GL_TEXTURE_2D, texture[0]);
@@ -313,23 +371,24 @@ int main(int argc, char *argv[])
                     break;
 
                 case SDLK_UP:
-                    moveOffsetUniform[1] += 0.1f;
+                    moveOffsetUniform[1] += 0.01f;
                     break;
                 case SDLK_DOWN:
-                    moveOffsetUniform[1] -= 0.1f;
+                    moveOffsetUniform[1] -= 0.01f;
                     break;
                 case SDLK_LEFT:
-                    moveOffsetUniform[0] -= 0.1f;
+                    moveOffsetUniform[0] -= 0.01f;
                     break;
                 case SDLK_RIGHT:
-                    moveOffsetUniform[0] += 0.1f;
+                    moveOffsetUniform[0] += 0.01f;
                     break;
 
                 default:
-                    printf("quit\n");
+                    printf("quit: %ld\n", event.key.keysym.sym & 0xffff);
                     running = GL_FALSE;
                     break;
                 }
+
             }else if( event.type == SDL_MOUSEWHEEL ){
                 scale -= event.wheel.y / 50.0f;
 //                if( scale >= 0.0f ){
@@ -338,6 +397,8 @@ int main(int argc, char *argv[])
                 printf("scale: %lf\n", scale);
             }
         }
+
+
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -350,12 +411,30 @@ int main(int argc, char *argv[])
         glUniform1i(textureLocation[1], 1);
         glBindTexture(GL_TEXTURE_2D, texture[1]);
 
-        glUniform3fv(colorUniformLocation, 1, colorUniform);
-        glUniform2fv(moveOffsetUniformLocation, 1, moveOffsetUniform);
-        glUniform1f(scaleUniformLocation, scale);
+        // create transformations
+        glm::mat4 model;
+        glm::mat4 view;
+        glm::mat4 projection;
+        model = glm::rotate(model, (float)0.2, glm::vec3(0.3f, 0.0f, 0.0f));
+        view  = glm::translate(view, glm::vec3(moveOffsetUniform[0], moveOffsetUniform[1], scale));
+        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        // retrieve the matrix uniform locations
+        GLint modelLoc = glGetUniformLocation(program, "model");
+        GLint viewLoc  = glGetUniformLocation(program, "view");
+        GLint projLoc  = glGetUniformLocation(program, "projection");
+        // pass them to the shaders (3 different ways)
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, &projection[0][0]);
 
+        glUniform3fv(colorUniformLocation, 1, colorUniform);
+        //moveOffsetUniform[0] = moveOffsetUniform[1] = 0.0f;
+        //glUniform2fv(moveOffsetUniformLocation, 1, moveOffsetUniform);
+        glUniform1f(scaleUniformLocation, scale);
+        //glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(indices[0]), GL_UNSIGNED_INT, indices);
+        //glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices)/(4 * sizeof(GLfloat)));
         glBindVertexArray(0);
 
         glUseProgram(0);
@@ -382,6 +461,7 @@ error_img_load_texture2_jpg:
 error_img_load_texture1_jpg:
     glDeleteTextures(2, texture);
 error_gl_gen_textures:
+error_get_uniform_projection_location:
 error_gl_get_uniform_texture_sampler2d:
 error_get_uniform_moveOffset_location:
 error_get_uniform_vertColor_location:

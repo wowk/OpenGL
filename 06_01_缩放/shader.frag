@@ -13,5 +13,5 @@ void main()
 
     vec4 tex1 = texture2D(texture1Sampler2D, texCoord);
     vec4 tex2 = texture2D(texture2Sampler2D, texCoord);
-    color = mix(tex1, tex2, 0.5f);
+    color = mix(tex1, tex2, 0.9f);
 }

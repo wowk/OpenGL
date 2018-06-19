@@ -4,7 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
-    GL/src/glad.c
+    GL/src/glad.cpp
 
 INCLUDEPATH += GL/include
 LIBS += -lGL -lGLU -lSDL2 -lSDL2_image -ldl -std=c++11
