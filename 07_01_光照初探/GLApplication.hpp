@@ -26,6 +26,7 @@ public:
     virtual void handleInput(const SDL_Event* e);
     virtual ~GLApplication();
 
+    void setFrameRate(GLfloat frameRate);
     void mainloop();
 
     bool running() const;
@@ -40,6 +41,7 @@ public:
     static void setInst(GLApplication *value);
 
 private:
+    GLfloat m_frameRate;
     bool m_running;
     SDL_GLContext m_gl_context;
     SDL_Window* m_window;

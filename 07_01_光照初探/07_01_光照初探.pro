@@ -36,5 +36,8 @@ HEADERS += \
     MyCube.hpp
 
 DISTFILES += \
-    shader.frag \
-    shader.vert
+    shader.vert \
+    Res/shader/cube.frag \
+    Res/shader/cube.vert \
+    Res/shader/light.frag \
+    Res/shader/light.vert

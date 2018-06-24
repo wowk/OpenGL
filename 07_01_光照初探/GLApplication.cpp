@@ -14,22 +14,56 @@ GLApplication* GLApplication::m_inst = nullptr;
 void GLApplication::mainloop()
 {
     GLfloat delta;
+    GLfloat time;
+    GLuint frameCount;
+    GLfloat frameTime;
+    GLuint oldTicks;
+    GLuint ticks;
     SDL_Event event;
 
+    time = 0.0f;
+    frameCount = 0;
+    oldTicks = SDL_GetTicks();
     setRunning(true);
-
     while (running()) {
-        while (running() && SDL_PollEvent(&event) ) {
+        ticks = SDL_GetTicks();
+        frameTime = ticks - oldTicks;
+        oldTicks = ticks;
+
+        while( SDL_PollEvent(&event) ){
             handleInput(&event);
-            currentScene()->update(delta);
         }
+        while( frameTime > 0.0f ){
+            delta = (frameTime > m_frameRate) ? m_frameRate : frameTime;
+            currentScene()->update(delta);
+            frameTime -= delta;
+        }
+        frameCount ++;
+        std::cout << "FrameTimme: " << frameCount * 1000.0f / ticks << std::endl;
         draw();
     }
 }
 
+//void GLApplication::mainloop()
+//{
+//    GLfloat delta;
+//    SDL_Event event;
+
+//    setRunning(true);
+
+//    while (running()) {
+//        while (running() && SDL_PollEvent(&event) ) {
+//            handleInput(&event);
+//            currentScene()->update(delta);
+//        }
+//        draw();
+//    }
+//}
+
+
 GLApplication::GLApplication()
 {
-
+    m_frameRate = 1000.0f / 60.0f;
 }
 
 bool GLApplication::init(int argc, char* argv[])
@@ -42,6 +76,7 @@ bool GLApplication::init(int argc, char* argv[])
         goto error_IMG_INIT;
     }
 
+    SDL_GL_SetSwapInterval(0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -169,6 +204,11 @@ GLApplication::~GLApplication()
     std::cout << "Unload IMG Library" << std::endl;
     SDL_Quit();
     std::cout << "Unload SDL Library" << std::endl;
+}
+
+void GLApplication::setFrameRate(GLfloat frameRate)
+{
+    m_frameRate = 1000.f / frameRate;
 }
 
 bool GLApplication::running() const

@@ -7,6 +7,7 @@
 #include <GLShader.hpp>
 #include <GLTexture.hpp>
 #include <glm/vec3.hpp>
+#include <map>
 
 
 class MyGLScene : public GLScene {
@@ -17,19 +18,17 @@ public:
     ~MyGLScene();
 
 private:
-    GLuint program;
-    GLShader shader;
     GLTexture texture;
-    GLint tex1Location;
     GLfloat rotate;
-    GLint projLoc;
-    GLint modelLoc;
-    GLint viewLoc;
-    GLint surfaceColorLoc;
     GLfloat radius;
     GLfloat angle;
     GLCamera camera;
+    GLShader shaderCube;
+    GLShader shaderLight;
     MyCube cube;
+    MyCube light;
+    GLfloat ambientStrength;
+    std::map<SDL_Keycode, bool> m_keymap;
 };
 
 #endif//MY_GL_SCENE_H__

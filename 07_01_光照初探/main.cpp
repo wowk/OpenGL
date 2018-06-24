@@ -7,6 +7,8 @@ using std::string;
 
 int main(int argc, char *argv[])
 {
+    putenv("vblank_mode=0");
+
     string dir = string("../") + string(basename(argv[0]));
     ::chdir(dir.c_str());
 

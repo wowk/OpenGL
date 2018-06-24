@@ -30,6 +30,7 @@ bool MyGLApplication::init(int argc, char* argv[])
         return false;
     }
 
+    setFrameRate(200.0f);
     auto scene = new MyGLScene();
     scene->init();
 
